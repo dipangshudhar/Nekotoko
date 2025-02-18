@@ -7,6 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
+        /* Default Light Mode */
         body {
             background: linear-gradient(135deg, #1e1e2e, #3a3a5e);
             color: white;
@@ -16,15 +17,21 @@
             align-items: center;
             height: 100vh;
             text-align: center;
-            opacity: 0; /* Start with opacity 0 */
-            visibility: hidden; /* Hide elements initially */
-            transition: opacity 2s ease; /* Apply fade transition */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 2s ease;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background: linear-gradient(135deg, #121212, #282828);
+            color: white;
         }
 
         /* Visible after content is loaded */
         body.visible {
-            opacity: 1; /* Show content */
-            visibility: visible; /* Make visible after fade-in */
+            opacity: 1;
+            visibility: visible;
         }
 
         h2 {
@@ -33,7 +40,6 @@
             letter-spacing: 2px;
         }
 
-        /* Buttons */
         .btn {
             background: #ff00ff;
             border: none;
@@ -51,7 +57,6 @@
             transform: scale(1.1);
         }
 
-        /* Token Display */
         #token-box {
             margin: 20px 0;
             font-size: 18px;
@@ -60,10 +65,14 @@
             cursor: pointer;
         }
 
-        /* Input Box */
+        .input-container {
+            position: relative;
+            width: 250px;
+        }
+
         input {
             padding: 12px;
-            width: 250px;
+            width: 100%;
             margin: 10px 0;
             font-size: 16px;
             text-align: center;
@@ -78,7 +87,12 @@
             box-shadow: 0 0 10px #00ffcc;
         }
 
-        /* Notification (Side Message) */
+        .show-token-checkbox {
+            margin-top: 10px;
+            cursor: pointer;
+            color: #00ffcc;
+        }
+
         #notification {
             position: fixed;
             top: 20px;
@@ -94,8 +108,29 @@
         }
 
         #notification.show {
-            left: 20px; /* Slide in from left */
+            left: 20px;
         }
+
+        /* Dark Mode Toggle Button */
+        .theme-toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #00ffcc;
+            border: none;
+            border-radius: 50%;
+            padding: 10px;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .theme-toggle-btn:hover {
+            background: #ff00ff;
+            transform: scale(1.1);
+        }
+
     </style>
 </head>
 <body>
@@ -105,36 +140,88 @@
     <p id="token-box" onclick="copyToken()">Your Token will appear here</p>
 
     <h2>🔹 Enter Token to Login 🔹</h2>
-    <input type="text" id="token-input" placeholder="Enter token">
+    <div class="input-container">
+        <input type="password" id="token-input" placeholder="Enter token">
+    </div>
+
+    <!-- Show Token Checkbox -->
+    <label class="show-token-checkbox">
+        <input type="checkbox" id="show-token-checkbox" onclick="togglePassword()"> Show Token
+    </label>
+
     <button class="btn" onclick="login()">Login</button>
 
     <!-- Notification Message -->
     <div id="notification"></div>
 
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()">🌙</button>
+
     <script>
         // Ensure page content is visible after load
         window.onload = function () {
-            document.body.classList.add('visible'); // Add 'visible' class to make content appear
+            document.body.classList.add('visible');
+            let savedTheme = localStorage.getItem("theme");
+            if (savedTheme === "dark") {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle-btn').innerText = '🌞'; // Change icon to Sun
+            }
         };
 
+        // Toggle Theme between Dark and Light Mode
+        function toggleTheme() {
+            let theme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle-btn').innerText = '🌞'; // Sun Icon for Light Mode
+                localStorage.setItem("theme", "dark"); // Save theme preference
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.querySelector('.theme-toggle-btn').innerText = '🌙'; // Moon Icon for Dark Mode
+                localStorage.setItem("theme", "light"); // Save theme preference
+            }
+        }
+
         function generateToken() {
-            let token = Math.random().toString(36).substr(2, 10);
-            localStorage.setItem("userToken", token);
+            let token = Math.random().toString(36).substr(2, 10); // Generate random token
+            let expiryTime = new Date().getTime() + (60 * 60 * 1000); // Token expires after 1 hour (3600000 ms)
+            
+            // Store token and expiry time in localStorage
+            let tokenData = {
+                token: token,
+                expiry: expiryTime
+            };
+            localStorage.setItem("userToken", JSON.stringify(tokenData)); // Save token with expiry time
             document.getElementById("token-box").innerText = "Your Token: " + token;
+        }
+
+        function validateToken() {
+            let storedData = JSON.parse(localStorage.getItem("userToken")); // Get token data from localStorage
+            if (storedData) {
+                let currentTime = new Date().getTime(); // Get current time
+                if (currentTime < storedData.expiry) {
+                    return true; // Token is valid
+                } else {
+                    localStorage.removeItem("userToken"); // Remove expired token
+                    alert("Token expired, please generate a new one.");
+                    return false; // Token expired
+                }
+            } else {
+                alert("No token found, please generate a token.");
+                return false; // No token found
+            }
         }
 
         function login() {
             let enteredToken = document.getElementById("token-input").value;
-            let savedToken = localStorage.getItem("userToken");
-
-            if (enteredToken === savedToken && enteredToken !== "") {
-                window.location.href = "neko.html";
+            let storedData = JSON.parse(localStorage.getItem("userToken"));
+            if (storedData && enteredToken === storedData.token && validateToken()) {
+                window.location.href = "neko.html"; // If token matches and is valid, login
             } else {
-                showNotification("Invalid Token! Try Again.");
+                showNotification("Invalid or expired token! Please generate a new one.");
             }
         }
 
-        // Function to copy token to clipboard
         function copyToken() {
             let tokenText = document.getElementById("token-box").innerText.replace("Your Token: ", ""); // Get the token text
             navigator.clipboard.writeText(tokenText)  // Use clipboard API to copy text
@@ -146,16 +233,19 @@
                 });
         }
 
-        // Function to show notification message
         function showNotification(message) {
             let notification = document.getElementById("notification");
             notification.innerText = message;
             notification.classList.add("show");
-
-            // Hide the notification after 3 seconds
             setTimeout(() => {
                 notification.classList.remove("show");
             }, 3000);
+        }
+
+        function togglePassword() {
+            let passwordField = document.getElementById("token-input");
+            let checkbox = document.getElementById("show-token-checkbox");
+            passwordField.type = checkbox.checked ? "text" : "password";
         }
     </script>
 
