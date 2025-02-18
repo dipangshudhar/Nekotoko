@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body {
+            background: linear-gradient(135deg, #1e1e2e, #3a3a5e);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            opacity: 0; /* Start with opacity 0 */
+            visibility: hidden; /* Hide elements initially */
+            transition: opacity 2s ease; /* Apply fade transition */
+        }
+
+        /* Visible after content is loaded */
+        body.visible {
+            opacity: 1; /* Show content */
+            visibility: visible; /* Make visible after fade-in */
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Buttons */
+        .btn {
+            background: #ff00ff;
+            border: none;
+            padding: 12px 20px;
+            font-size: 18px;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: #cc00cc;
+            transform: scale(1.1);
+        }
+
+        /* Token Display */
+        #token-box {
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ffcc;
+            cursor: pointer;
+        }
+
+        /* Input Box */
+        input {
+            padding: 12px;
+            width: 250px;
+            margin: 10px 0;
+            font-size: 16px;
+            text-align: center;
+            border: 2px solid #ff00ff;
+            border-radius: 5px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #00ffcc;
+            box-shadow: 0 0 10px #00ffcc;
+        }
+
+        /* Notification (Side Message) */
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: -100%;
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 18px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transition: all 0.5s ease;
+        }
+
+        #notification.show {
+            left: 20px; /* Slide in from left */
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🔹 Generate Your Token 🔹</h2>
+    <button class="btn" onclick="generateToken()">Generate Token</button>
+    <p id="token-box" onclick="copyToken()">Your Token will appear here</p>
+
+    <h2>🔹 Enter Token to Login 🔹</h2>
+    <input type="text" id="token-input" placeholder="Enter token">
+    <button class="btn" onclick="login()">Login</button>
+
+    <!-- Notification Message -->
+    <div id="notification"></div>
+
+    <script>
+        // Ensure page content is visible after load
+        window.onload = function () {
+            document.body.classList.add('visible'); // Add 'visible' class to make content appear
+        };
+
+        function generateToken() {
+            let token = Math.random().toString(36).substr(2, 10);
+            localStorage.setItem("userToken", token);
+            document.getElementById("token-box").innerText = "Your Token: " + token;
+        }
+
+        function login() {
+            let enteredToken = document.getElementById("token-input").value;
+            let savedToken = localStorage.getItem("userToken");
+
+            if (enteredToken === savedToken && enteredToken !== "") {
+                window.location.href = "neko.html";
+            } else {
+                showNotification("Invalid Token! Try Again.");
+            }
+        }
+
+        // Function to copy token to clipboard
+        function copyToken() {
+            let tokenText = document.getElementById("token-box").innerText.replace("Your Token: ", ""); // Get the token text
+            navigator.clipboard.writeText(tokenText)  // Use clipboard API to copy text
+                .then(() => {
+                    showNotification("Token copied to clipboard!");
+                })
+                .catch(err => {
+                    showNotification("Failed to copy token: " + err);
+                });
+        }
+
+        // Function to show notification message
+        function showNotification(message) {
+            let notification = document.getElementById("notification");
+            notification.innerText = message;
+            notification.classList.add("show");
+
+            // Hide the notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove("show");
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
