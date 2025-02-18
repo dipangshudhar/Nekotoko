@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neko Dance</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-
+        /* Default Light Mode */
         body {
             background: linear-gradient(135deg, #1e1e2e, #3a3a5e);
             color: white;
@@ -16,15 +15,21 @@
             align-items: center;
             height: 100vh;
             text-align: center;
-            opacity: 0; /* Start with opacity 0 */
-            visibility: hidden; /* Hide elements initially */
-            transition: opacity 2s ease; /* Apply fade transition */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 2s ease;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background: linear-gradient(135deg, #121212, #282828);
+            color: white;
         }
 
         /* Visible after content is loaded */
         body.visible {
-            opacity: 1; /* Show content */
-            visibility: visible; /* Make visible after fade-in */
+            opacity: 1;
+            visibility: visible;
         }
 
         h2, h3 {
@@ -33,7 +38,6 @@
             letter-spacing: 2px;
         }
 
-        /* Dancing Neko */
         .neko {
             width: 200px;
             animation: dance 1s infinite alternate ease-in-out;
@@ -44,7 +48,6 @@
             100% { transform: rotate(5deg); }
         }
 
-        /* Back Button */
         .btn {
             background: #ff00ff;
             border: none;
@@ -63,23 +66,23 @@
             transform: scale(1.1);
         }
 
-        /* Notification (Side Message) */
-        #notification {
+        .theme-toggle-btn {
             position: fixed;
             top: 20px;
-            left: -100%; /* Hide off-screen */
-            background-color: #333;
+            right: 20px;
+            background: #00ffcc;
+            border: none;
+            border-radius: 50%;
+            padding: 10px;
+            font-size: 20px;
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 18px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            transition: all 0.5s ease; /* Slide-in effect */
+            cursor: pointer;
+            transition: 0.3s;
         }
 
-        #notification.show {
-            left: 20px; /* Slide-in from the left */
+        .theme-toggle-btn:hover {
+            background: #ff00ff;
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -90,23 +93,33 @@
     <img class="neko" src="neko.gif" alt="Neko Dancing">
     <button class="btn" onclick="window.location.href='index.html'">Go Back</button>
 
-    <!-- Notification Message -->
-    <div id="notification">Thanks for using me! 😊</div>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle-btn" onclick="toggleTheme()">🌙</button>
 
     <script>
         // Ensure page content is visible after load
         window.onload = function () {
-            document.body.classList.add('visible'); // Add 'visible' class to make content appear
-
-            // Show slide-in notification
-            let notification = document.getElementById("notification");
-            notification.classList.add("show");
-
-            // Hide the notification after 3 seconds
-            setTimeout(() => {
-                notification.classList.remove("show");
-            }, 3000);
+            document.body.classList.add('visible');
+            let savedTheme = localStorage.getItem("theme");
+            if (savedTheme === "dark") {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle-btn').innerText = '🌞'; // Change icon to Sun
+            }
         };
+
+        // Toggle Theme between Dark and Light Mode
+        function toggleTheme() {
+            let theme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle-btn').innerText = '🌞'; // Sun Icon for Light Mode
+                localStorage.setItem("theme", "dark"); // Save theme preference
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.querySelector('.theme-toggle-btn').innerText = '🌙'; // Moon Icon for Dark Mode
+                localStorage.setItem("theme", "light"); // Save theme preference
+            }
+        }
     </script>
 
 </body>
